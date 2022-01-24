@@ -1,0 +1,17 @@
+.inner {
+  left: 2.5px !important;
+}
+.inner .mord .mrel {
+  visibility: hidden;
+  position: relative;
+}
+.inner .mord .mrel::after {
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "/" !important;
+}
+.katex .mfrac .frac-line {
+  border-top: solid 1px rgba(0, 0, 0, 0.8);
+}
