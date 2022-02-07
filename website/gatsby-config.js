@@ -25,14 +25,24 @@ module.exports = {
     {
       resolve: "smooth-doc",
       options: {
-        name: "Modern Analysis Notes",
-        description: "A large collection of Modern Analysis Notes and Helpful descriptions",
-        siteUrl: "https://example.com",
+        name: "Data Humanities",
+        description: "A place to explore problems and biases in modern data science",
+        siteUrl: "https://datahumanities.com",
         author: 'Noah Love',
         sections: ['Review', 'Real and Complex Number Systems', 'Basic Topology', 'Numerical Sequences and Series'],
         twitterAccount: 'noahjameslove',
         githubRepositoryURL: 'https://github.com/noahlove/math-notes'
       },
     },
+    {
+      resolve: `gatsby-plugin-google-analytics`,
+      options: {
+        trackingId: "UA-158190143-5",
+        // this option places the tracking script into the head of the DOM
+        head: true,
+        // other options
+      },
+    },
+
   ],
 };
