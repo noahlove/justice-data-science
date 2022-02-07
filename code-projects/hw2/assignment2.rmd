@@ -1,7 +1,19 @@
 ---
 title: "Assignment 2"
-output: pdf_document
+author: "Noah Love"
+output:
+  html_document:
+    df_print: paged
 ---
+
+
+```{r}
+library(tidyverse)
+library(ggpomological)
+
+
+```
+
 
 Please do all your work for this assignment within this R Markdown file. Unless I specifically ask for a written response, your code is sufficient as an answer to a question. I've left code chunks and comments to indicate where to write your code, and typically the size of the code chunk suggests how much code you'll need to write (so a chunk with one empty line could be solved with one line of code). Of course, take more space if you like. And if you have favorite packages you would like to use, feel free, but it is not necessary.
 
@@ -9,38 +21,109 @@ Please do all your work for this assignment within this R Markdown file. Unless 
 
 Find and download a tabular dataset that interests you from a publicly available database or repository (see the Lab 2 powerpoint for suggestions). Find one that has at least one numeric column (such as age, score, etc.), and at least one categorical column (such as gender, race, etc.). A .csv file will likely be easiest to work with, but choose any dataset you feel comfortable you can import. Read the dataframe into R below:
 ```{r}
-
+library(readr)
+avocado <- read_csv("avocado.csv")
 ```
 
 **How many rows and columns are in the dataset? What does each row represent (i.e. what is the dataset about)?**
+
+```{r}
+head(avocado)
+
+
+dim(avocado)
+```
+Each row represents a full week's scan data of avocadoes. It is scan data for National retail units sold and prices sold, i.e. the total amount of avocadoes sold nation wide and the average price of them. The data comes directly from retailers' cash registers and was provided by Hass avocados "Avocado Board"
 
 
 
 **Pick three variables (columns) that interest you, and describe what they measure.**
 
 
+Average price is the average price across all selling locations that was paid for avocados. The numbered columns(4046,4225,4770) represent individual SKU's of avocados (different types of Hass avocadoes like large or extra large). Type was fun that it was included, shows conventional or organic. 
+
 
 **Pick a single column with numeric data (numbers, not text), plot a histogram of that column, and describe what the figure tells you about the data.**
-```{r}
+```{r message=FALSE, warning=FALSE}
+
+avocado_plot <- avocado %>% 
+  mutate(year_char = as.character(year))  %>% 
+  select(-year) %>% 
+  rename(year = year_char)
+
+ggplot(data = avocado_plot) + 
+  aes(AveragePrice, fill = year) + 
+  geom_histogram() + 
+  xlab('Price USD') + 
+  ylab('Count') + 
+  ggtitle("Average Price") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  scale_fill_pomological() +
+  theme_pomological_fancy()
 # We'll get fancy with figures later, keep it simple with hist()
 
 ```
 
-Let's visualize two variables together. **Pick either two numeric columns, or one categorical and one numeric column, and plot them against each other using the `plot()` function. Describe what the figure tells you about the data** If you have a categorical variable, often we place these on the X-axis (the first argument to `plot()`). Also, R sometimes requires that categorical variables are treated as `factors` (more on this later). If you have a `character` column that is categorical (like gender, race, etc.), you can convert it to a factor using `as.factor()`.
+Certainly not everyone pays the same thing for avocados, all year round. It also appears every year we are eating less avocados!
 
-```{r}
-# myData$myVariable = as.factor(myData$myVariable) # Try this template if categorical plot looks weird
+```{r message=FALSE, warning=FALSE}
+ggplot(data = avocado_plot) + 
+  aes(AveragePrice, fill = type) + 
+  geom_histogram() + 
+  xlab('Price USD') + 
+  ylab('Count') + 
+  ggtitle("Price Difference for Organic") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  scale_fill_pomological() +
+  theme_pomological_fancy()
+# We'll get fancy with figures later, keep it simple with hist()
 
 ```
 
+
+Let's visualize two variables together. **Pick either two numeric columns, or one categorical and one numeric column, and plot them against each other using the `plot()` function. Describe what the figure tells you about the data** If you have a categorical variable, often we place these on the X-axis (the first argument to `plot()`). Also, R sometimes requires that categorical variables are treated as `factors` (more on this later). If you have a `character` column that is categorical (like gender, race, etc.), you can convert it to a factor using `as.factor()`.
+
+```{r message=FALSE, warning=FALSE}
+# myData$myVariable = as.factor(myData$myVariable) # Try this template if categorical plot looks weird
+
+ggplot(data = avocado) + 
+  aes(y = AveragePrice, x = `Total Volume`, color = type) + 
+  geom_point() +
+  xlab('Total Volume') + 
+  ylab('Average Price') + 
+  ggtitle("Supply and Demand") +
+  scale_x_continuous(labels = scales::label_number()) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  scale_fill_pomological() +
+  scale_color_pomological() +
+  theme_pomological_fancy()
+
+```
+
+My first instinct was to see how volume and pricing was related. Does this follow the intuitions from basic intro to economics class? 
+
+For organic avocados, no. They are low in volume and can command just about any price. This is likely partially due to region but also due to people are simply willing to pay a much higher price for their organic avocado toast. 
+
+Even for conventional non-organic avocados, it doesn't seem that pricing is strongly effected by volume. There is a suggestion of it in the middle of the graph, but based on the fact that lower volume weeks also had lower prices it is likely something else. 
 
 **Optional Challenge:** Make one more plot of your choice, using `hist()`, `plot()`, or `pie(table())`, or any function you like. Describe what the figure tells you about the data.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
+ggplot(data = avocado_plot) + 
+  aes(y = AveragePrice, x = `Total Volume`, color = year) + 
+  geom_point() +
+  xlab('Total Volume') + 
+  ylab('Average Price') + 
+  ggtitle("Supply and Demand") +
+  scale_x_continuous(labels = scales::label_number()) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  scale_fill_pomological() +
+  scale_color_pomological() +
+  theme_pomological_fancy()
 
 ```
 
-
+Not a lot of additional data. It may suggest that 2017 as a whole year saw higher avocado pricing for the same volume of avocados. 
 
 ## Part 2: Pulling data from the web using R and regular expressions
 
@@ -61,27 +144,33 @@ library(rvest)
 start_URL = 'https://en.wikipedia.org/wiki/Chicago'
 
 # Read the page's HTML data into R using read_html()
-
+start_page <- read_html(start_URL)
 ```
 
 `rvest` contains a few key functions to make parsing HTML easier. If you inspect the HTML of any website, you'll find that all content that appears in your browser is surrounded by tags contained in `<` and `>` brackets. On well-made websites (like Wikipedia), major sections are labeled with a `class = ` or an `id = ` within the tag. **We want to find all the links (within `<a>` tags) in the main text description of the page**. Using the `html_elements()` function, collect all the `<a>` elements in the main text description into a variable `links`. This can be tricky if you are unfamiliar with HTML! If you get stuck, check the `A2Hints.txt` file on the assignment page in Courseworks for the solution.
 
 ```{r}
 # Get the links within the main content section
+links <- html_elements(start_page, 'a')
+links <-  html_elements(start_page, '.mw-parser-output p a')
+
+links
 
 ```
 
 If you succeeded, you'll have a variable `links` in your environment that is a `Large xml_nodeset` with 1715 elements. View the first 10 elements by running `links[1:10]` below:
 
 ```{r}
+length(links)
 
+links[1:10]
 ```
 
 The `href=` within each `<a>` tag is the (partial) URL that the link directs to. URLs that start with `/wiki/` are links to other Wikipedia articles, which we'd like to save. For example, the 3rd element of `links` goes to `upload.wikimedia` and is a sound file, and the 7th element links to a citation. We can use **regular expressions** to pull out only the links that contain references to other Wikipedia articles by matching the pattern `href="/wiki/`. Use the output of `grepl()` to get a subset of links (using square brackets `[]` like above). If you get stuck, study the `lab 2 r code.rmd` from Monday, or check the `A2Hints.txt` file.
 
 ```{r}
 # Get only links that reference other wikipedia articles
-links = 
+links = links[grepl('href="/wiki/',links)]
 ```
 
 Next, some of the links that start with `/wiki/` go to Help or File pages (`href="/wiki/Help...`). These are not topics related to the article, so let's get rid of these, again with regular expressions. If we use `grepl()` to match these patterns, we'll get a TRUE where they do occur. But we want to keep the rows where they DON'T occur. We can invert a list of logical values using the `!` symbol, which means 'not'. Subset the `links` variable like you did above, keeping the elements that do not (`!`) match `/Help` or `/File`. It may be easiest to do this in two steps. Check `A2Hints.txt` for help if you're unsure.
@@ -90,6 +179,9 @@ Next, some of the links that start with `/wiki/` go to Help or File pages (`href
 # Remove links with Help or File
 
 
+links  <-  links[!grepl('/Help',links)]
+links <-  links[!grepl('/File',links)]
+
 ```
 
 These steps should have reduced your `links` variable down to 1340 elements. To keep things simple, let's save only the first 10 links. Overwrite the `links` variable by reassigning it to itself, subsetting elements `1:10` in square brackets `[]`, like you did to view them above. Be sure that your new `links` has 10 elements before moving forward.
@@ -97,13 +189,19 @@ These steps should have reduced your `links` variable down to 1340 elements. To 
 ```{r}
 # Save only first 10 links
 
+links <- links[1:10]
+links
+
 ```
 
 OK, with this bit of clean-up, we're finally ready to start extracting data about the Wikipedia article! We'll start by building a data frame. First, extract the text within the `links` using `html_text()`, and assign the output to a new variable `topic_names`. Then, construct a data frame using `data.frame()`, giving it `topic_names` as an argument, and assigning the output to a variable `wiki_data`. By default, the name of the column will take the name of the variable. Rename the column to `Topic` using the `colnames()` function. Finally, initiate a new column of `wiki_data`, calling it 'Description', and giving it a value of `NA`. (Check the Lab 2 R code to see how to do these steps)
 
 ```{r}
 # Get name of the topic that the Wikipedia article links to
+links
 
+topic_names <- html_text(links)
+topic_names
 
 # Make a data frame to store and organize the list of topics
 
@@ -112,27 +210,38 @@ OK, with this bit of clean-up, we're finally ready to start extracting data abou
 
 
 # Initiate a new, empty column called 'Description' that contains NA
+wiki_data <- data.frame(topic_names) %>% 
+  rename(Topic = topic_names) %>% 
+  mutate(Description = NA)
+
+wiki_data
 
 ```
 
 Almost there! The description of each topic is contained within each article's page. So we'll need to use the URL to travel to each of the 10 pages, and extract a description of each topic. First, get the URLs from the `links` variable using `html_attr()`, accessing the 'href' attribute. Store the output into a variable `URLs`. **If you're up for a challenge**, write a `for` loop that iterates through the `URLs` and stores the `.shortdescription` element of each page into the correct row in the `wiki_data` 'Description' column. **Otherwise,** if you don't think you're up for such an endeavor (which is fine!), copy and paste the for loop in the `A2Hints.txt` file on Courseworks. Either way, **make sure you include the line** `Sys.sleep(5)` **within the loop** so you don't get flagged by Wikipedia and get your access blocked!
 
-```{r}
-URLs = 
+```{r cache = TRUE}
+
+URLs = html_attr(links, "href")
 
 # Loop begins here {
-  
+for (i in 1:length(URLs)) {  
+  print(paste('Visiting', URLs[i], sep = ' '))
   
   # Read the current article HTML into R
+  page <-  read_html(paste('https://en.wikipedia.org', URLs[i], sep = ''))
   
   # Extract the contents of '.shortdescription' tag, and store it in the dataframe
-  
+  wiki_data[i, 'Description'] <-  html_text(html_element(page, '.shortdescription'))
 
   # Be respectful of Wikipedia's servers by waiting for 5 seconds between requests
   # DO NOT REMOVE the Sys.sleep(5) line below!
   # Requesting webpages too fast can result in your computer being blocked from the website
   Sys.sleep(5)
-#}
+}
+
+
+
 ```
 
 You should now have a data frame containing 10 topics related to the article, and a short description of each topic! Run the code below to view the results in a 'prettier' format.
@@ -148,10 +257,10 @@ To submit the assignment, use the `Knit` dropdown and select `Knit to PDF` to sa
 ## Part 3: Your feedback on this assignment
 
 **On a scale of 1-5, with 1 being “too easy”, 5 being “too hard”, and 3 being “a good level”, how difficult was this assignment?**
-
+3
 
 **Approximately how much time did you spend working on this assignment? (i.e. actively solving the problem, not exploring the data independently)**
-
+45 minutes
 
 **Any thoughts on what you found useful, or what you found mundane, or confusing? (anything, big or small)**
-
+Fun assignment. Never done web scraping in R before so that was enjoyable! Easier than I assumed because most people seem to use python. 
